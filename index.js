@@ -73,19 +73,25 @@ async function run() {
     })
 
     //  payment related apis
+    app.post('/payment-checkout-session', async(req, res) =>{
+      const paymentInfo = req.body;
+      
+    })
+    // old
     app.post("/create-checkout-session" , async(req, res) =>{
       const paymentInfo = req.body;
+      const amount = parseInt(paymentInfo.cost) * 100;
 
      const session = await stripe.checkout.sessions.create({
        line_items: [
          {
-           // Provide the exact Price ID (for example, price_1234) of the product you want to sell
+           // 
            price_data: {
-            currency: 'USD',
-            unit_amount: 1500,
-            product_data: {
-              name: paymentInfo.parcelName
-            }
+             currency: "USD",
+             unit_amount: amount,
+             product_data: {
+               name: paymentInfo.parcelName,
+             },
            },
 
            quantity: 1,
@@ -93,8 +99,14 @@ async function run() {
        ],
        customer_email: paymentInfo.senderEmail,
        mode: "payment",
+       metadata: {
+         parcelId: paymentInfo.parcelId,
+       },
        success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success`,
+       cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
      });
+     console.log(session)
+     res.send({url: session.url})
     });
 
     // Send a ping to confirm a successful connection
